@@ -9,6 +9,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ guil
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
+
   try {
     const { guildId } = await params;
     let guild = await prisma.guild.findUnique({ where: { id: guildId } });
@@ -30,6 +31,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ guil
 export async function POST(req: NextRequest, { params }: { params: Promise<{ guildId: string }> }) {
   const session = await getServerSession(authOptions);
   if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
 
   try {
     const { guildId } = await params;
