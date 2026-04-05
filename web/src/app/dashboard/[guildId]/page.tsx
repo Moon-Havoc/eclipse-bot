@@ -1,10 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
-export default function ServerSettings({ params }: { params: { guildId: string } }) {
+export default function ServerSettings({ params }: { params: Promise<{ guildId: string }> }) {
+  const { guildId } = use(params);
+  
   const { data: session, status } = useSession();
   const router = useRouter();
 
@@ -17,7 +19,7 @@ export default function ServerSettings({ params }: { params: { guildId: string }
   useEffect(() => {
     if (status === 'unauthenticated') router.push('/api/auth/signin');
     if (status === 'authenticated') {
-      fetch(`/api/guilds/${params.guildId}`)
+      fetch(`/api/guilds/${guildId}`)
         .then(res => res.json())
         .then(data => {
           if (data && !data.error) {
@@ -29,12 +31,12 @@ export default function ServerSettings({ params }: { params: { guildId: string }
         })
         .catch(console.error);
     }
-  }, [params.guildId, status, router]);
+  }, [guildId, status, router]);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSaving(true);
-    await fetch(`/api/guilds/${params.guildId}`, {
+    await fetch(`/api/guilds/${guildId}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ prefix, logChannel, welcomeChannel })
