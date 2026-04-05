@@ -2,13 +2,16 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "../api/auth/[...nextauth]/route";
 import { redirect } from "next/navigation";
 import Link from 'next/link';
+import { getUserGuilds } from "../../lib/discord";
 
 export default async function Dashboard() {
   const session = await getServerSession(authOptions);
 
-  if (!session) {
+  if (!session || !(session as any).accessToken) {
     redirect("/api/auth/signin");
   }
+
+  const guilds = await getUserGuilds((session as any).accessToken);
 
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', position: 'relative' }}>
@@ -50,17 +53,29 @@ export default async function Dashboard() {
         <section style={{ flex: 1, paddingLeft: '2.5rem', borderLeft: '1px solid var(--glass-border)' }}>
           <h1 style={{ fontSize: '2.5rem', fontWeight: 800, marginBottom: '2.5rem', letterSpacing: '-0.02em' }}>Your Servers</h1>
           
-          <div className="glass-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
-              <div style={{ width: '64px', height: '64px', background: 'var(--gradient-main)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '1.25rem', boxShadow: '0 4px 15px rgba(0, 245, 255, 0.3)' }}>
-                EE
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+            {guilds.length === 0 && (
+              <p style={{ color: 'var(--text-secondary)' }}>You don't have 'Manage Server' permissions for any active servers.</p>
+            )}
+            
+            {guilds.map((guild) => (
+              <div key={guild.id} className="glass-card" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1.5rem' }}>
+                  <div style={{ width: '64px', height: '64px', background: 'var(--gradient-main)', borderRadius: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: '800', fontSize: '1.25rem', boxShadow: '0 4px 15px rgba(0, 245, 255, 0.3)', overflow: 'hidden' }}>
+                    {guild.icon ? (
+                      <img src={`https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png`} alt={guild.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      guild.name.substring(0, 2).toUpperCase()
+                    )}
+                  </div>
+                  <div>
+                    <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.25rem' }}>{guild.name}</h3>
+                    <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Configure bot modules and settings</p>
+                  </div>
+                </div>
+                <Link href={`/dashboard/${guild.id}`} className="btn btn-primary" style={{ padding: '0.65rem 1.5rem' }}>Manage</Link>
               </div>
-              <div>
-                <h3 style={{ fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.25rem' }}>Endless Eclipse</h3>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>Configure bot modules and settings</p>
-              </div>
-            </div>
-            <button className="btn btn-primary" style={{ padding: '0.65rem 1.5rem' }}>Manage</button>
+            ))}
           </div>
 
         </section>
