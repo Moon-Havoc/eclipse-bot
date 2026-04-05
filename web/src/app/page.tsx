@@ -1,14 +1,21 @@
-import Image from "next/image";
+import { getServerSession } from "next-auth";
+import { authOptions } from "./api/auth/[...nextauth]/route";
 
-export default function Home() {
+export default async function Home() {
+  const session = await getServerSession(authOptions);
+
   return (
     <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
       <nav className="glass" style={{ padding: '1rem 2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 50 }}>
         <div style={{ fontSize: '1.5rem', fontWeight: 'bold' }}>Endless <span className="gradient-text">Eclipse</span></div>
-        <div style={{ display: 'flex', gap: '1rem' }}>
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
           <a href="#" style={{ padding: '0.5rem' }}>Features</a>
           <a href="#" style={{ padding: '0.5rem' }}>Commands</a>
-          <a href="#" className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>Login with Discord</a>
+          {session ? (
+            <a href="/dashboard" className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>Dashboard ({session.user?.name})</a>
+          ) : (
+            <a href="/api/auth/signin" className="btn btn-primary" style={{ padding: '0.5rem 1rem' }}>Login with Discord</a>
+          )}
         </div>
       </nav>
 
@@ -21,7 +28,11 @@ export default function Home() {
         </p>
         <div style={{ display: 'flex', gap: '1rem' }}>
           <button className="btn btn-primary" style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}>Add to Server</button>
-          <button className="btn btn-secondary" style={{ fontSize: '1.1rem', padding: '1rem 2rem' }}>View Dashboard</button>
+          {session ? (
+            <a href="/dashboard" className="btn btn-secondary" style={{ fontSize: '1.1rem', padding: '1rem 2rem', display: 'inline-flex', alignItems: 'center' }}>Go to Dashboard</a>
+          ) : (
+            <a href="/api/auth/signin" className="btn btn-secondary" style={{ fontSize: '1.1rem', padding: '1rem 2rem', display: 'inline-flex', alignItems: 'center' }}>Login to Dashboard</a>
+          )}
         </div>
       </section>
     </main>
