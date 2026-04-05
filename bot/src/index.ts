@@ -39,6 +39,14 @@ async function bootstrap() {
       throw new Error('DISCORD_TOKEN is not defined in the environment variables.');
     }
     
+    // Create a dummy health check server for Render's "Web Service" requirement
+    const http = require('http');
+    const port = process.env.PORT || 8080;
+    http.createServer((req: any, res: any) => {
+      res.writeHead(200);
+      res.end('Bot is active and running!');
+    }).listen(port, () => console.log(`[Web] Health server listening on port ${port}`));
+
     // Load Commands & Register Event Handlers for Commands
     await loadCommands(client);
 
